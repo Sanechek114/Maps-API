@@ -13,20 +13,29 @@ class Example(QWidget):
     def __init__(self):
         super().__init__()
         self.z = 5
+        self.x = 0
+        self.y = 0
         self.getImage()
         self.initUI()
 
     def getImage(self):
         server_address = 'https://static-maps.yandex.ru/v1?'
         api_key = 'f3a0fe3a-b07e-4840-a1da-06f18b2ddf13'
-        ll_spn = 'll=37.530887,55.703118'
         # Готовим запрос.
         if self.z >= 21:
             self.z = 2
-        elif self.z <= 1:
+        if self.z <= 1:
             self.z = 20
+        if self.y <= -80:
+            self.y = 80
+        if self.y >= 90:
+            self.y = -70
+        if self.x <= -180:
+            self.x = 180
+        if self.x >= 180:
+            self.x = -180
 
-        map_request = f"{server_address}{ll_spn}&apikey={api_key}&z={self.z}"
+        map_request = f"{server_address}ll={self.x},{self.y}&apikey={api_key}&z={self.z}"
         response = requests.get(map_request)
 
         if not response:
@@ -57,6 +66,14 @@ class Example(QWidget):
             self.z += 1
         elif event.key() == Qt.Key.Key_PageDown:
             self.z -= 1
+        elif event.key() == Qt.Key.Key_Left:
+            self.x -= 10
+        elif event.key() == Qt.Key.Key_Right:
+            self.x += 10
+        elif event.key() == Qt.Key.Key_Up:
+            self.y += 10
+        elif event.key() == Qt.Key.Key_Down:
+            self.y -= 10
         self.getImage()
         self.pixmap = QPixmap(self.map_file)
         self.image.setPixmap(self.pixmap)
