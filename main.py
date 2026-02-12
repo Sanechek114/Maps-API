@@ -13,21 +13,25 @@ class Example(QWidget):
     def __init__(self):
         super().__init__()
         self.coords = [37.530887, 55.703118]
-        self.spn = 0.002
+        self.z = 5
         self.themes = ["light", "dark"]
         self.theme = self.themes[0]
         self.getImage()
         self.initUI()
+        
 
     def getImage(self):
         server_address = 'https://static-maps.yandex.ru/v1?'
         api_key = 'f3a0fe3a-b07e-4840-a1da-06f18b2ddf13'
-        ll_spn = 'll=37.530887,55.703118&spn=0.002,0.002'
         # Готовим запрос.
+        if self.z >= 21:
+            self.z = 2
+        elif self.z <= 1:
+            self.z = 20
 
         map_params = {
             "ll": ",".join([str(self.coords[0]), str(self.coords[1])]),
-            "spn": ",".join([str(self.spn), str(self.spn)]),
+            "z": self.z,
             "apikey": api_key,
             "theme": self.theme
         }
@@ -61,25 +65,25 @@ class Example(QWidget):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_PageDown:
-            pass
+            self.z -= 1
         if event.key() == Qt.Key.Key_PageUp:
-            pass
+            self.z += 1
         if event.key() == Qt.Key.Key_Up:
-            self.coords[1] += 100 * self.spn
-        
+            self.coords[1] += 0.01 * self.z
+
         if event.key() == Qt.Key.Key_Down:
-            self.coords[1] -= 10 * self.spn
-        
+            self.coords[1] -= 0.01 * self.z
+
         if event.key() == Qt.Key.Key_Left:
-            self.coords[0] -= 10 * self.spn
-        
+            self.coords[0] -= 0.01 * self.z
+
         if event.key() == Qt.Key.Key_Right:
-            self.coords[1] += 10 * self.spn
+            self.coords[0] += 0.01 * self.z
         self.getImage()
         self.pixmap = QPixmap(self.map_file)
         self.image.setPixmap(self.pixmap)
-    
-       
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = Example()
