@@ -3,6 +3,7 @@ import sys
 
 import requests
 from PyQt6.QtGui import QPixmap
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel
 
@@ -12,13 +13,13 @@ SCREEN_SIZE = [600, 450]
 class Example(QWidget):
     def __init__(self):
         super().__init__()
-        self.coords = [37.530887, 55.703118]
         self.z = 5
+        self.x = 0
+        self.y = 0
         self.themes = ["light", "dark"]
-        self.theme = self.themes[0]
+        self.theme = self.themes[1]
         self.getImage()
         self.initUI()
-        
 
     def getImage(self):
         server_address = 'https://static-maps.yandex.ru/v1?'
@@ -26,11 +27,19 @@ class Example(QWidget):
         # Готовим запрос.
         if self.z >= 21:
             self.z = 2
-        elif self.z <= 1:
+        if self.z <= 1:
             self.z = 20
+        if self.y <= -80:
+            self.y = 80
+        if self.y >= 90:
+            self.y = -70
+        if self.x <= -180:
+            self.x = 180
+        if self.x >= 180:
+            self.x = -180
 
         map_params = {
-            "ll": ",".join([str(self.coords[0]), str(self.coords[1])]),
+            "ll": ",".join([str(self.x), str(self.y)]),
             "z": self.z,
             "apikey": api_key,
             "theme": self.theme
@@ -59,29 +68,27 @@ class Example(QWidget):
         self.image.resize(600, 450)
         self.image.setPixmap(self.pixmap)
 
-    def closeEvent(self, event):
-        """При закрытии формы подчищаем за собой"""
-        os.remove(self.map_file)
-
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key.Key_PageDown:
-            self.z -= 1
+        os.remove(self.map_file)
         if event.key() == Qt.Key.Key_PageUp:
             self.z += 1
-        if event.key() == Qt.Key.Key_Up:
-            self.coords[1] += 0.01 * self.z
-
-        if event.key() == Qt.Key.Key_Down:
-            self.coords[1] -= 0.01 * self.z
-
-        if event.key() == Qt.Key.Key_Left:
-            self.coords[0] -= 0.01 * self.z
-
-        if event.key() == Qt.Key.Key_Right:
-            self.coords[0] += 0.01 * self.z
+        elif event.key() == Qt.Key.Key_PageDown:
+            self.z -= 1
+        elif event.key() == Qt.Key.Key_Left:
+            self.x -= 10
+        elif event.key() == Qt.Key.Key_Right:
+            self.x += 10
+        elif event.key() == Qt.Key.Key_Up:
+            self.y += 10
+        elif event.key() == Qt.Key.Key_Down:
+            self.y -= 10
         self.getImage()
         self.pixmap = QPixmap(self.map_file)
         self.image.setPixmap(self.pixmap)
+
+    def closeEvent(self, event):
+        """При закрытии формы подчищаем за собой"""
+        os.remove(self.map_file)
 
 
 if __name__ == '__main__':
