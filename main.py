@@ -14,6 +14,8 @@ class Example(QWidget):
         super().__init__()
         self.coords = [37.530887, 55.703118]
         self.spn = 0.002
+        self.themes = ["light", "dark"]
+        self.theme = self.themes[0]
         self.getImage()
         self.initUI()
 
@@ -27,6 +29,7 @@ class Example(QWidget):
             "ll": ",".join([str(self.coords[0]), str(self.coords[1])]),
             "spn": ",".join([str(self.spn), str(self.spn)]),
             "apikey": api_key,
+            "theme": self.theme
         }
 
         response = requests.get(server_address, params=map_params)
@@ -75,6 +78,7 @@ class Example(QWidget):
         self.getImage()
         self.pixmap = QPixmap(self.map_file)
         self.image.setPixmap(self.pixmap)
+    
        
 if __name__ == '__main__':
     app = QApplication(sys.argv)
