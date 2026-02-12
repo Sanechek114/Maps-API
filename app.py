@@ -4,6 +4,7 @@ import sys
 import requests
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel
+from PyQt6.QtCore import Qt
 
 SCREEN_SIZE = [600, 450]
 
@@ -11,16 +12,21 @@ SCREEN_SIZE = [600, 450]
 class Example(QWidget):
     def __init__(self):
         super().__init__()
+        self.z = 5
         self.getImage()
         self.initUI()
 
     def getImage(self):
         server_address = 'https://static-maps.yandex.ru/v1?'
         api_key = 'f3a0fe3a-b07e-4840-a1da-06f18b2ddf13'
-        ll_spn = 'll=37.530887,55.703118&spn=0.002,0.002'
+        ll_spn = 'll=37.530887,55.703118'
         # Готовим запрос.
+        if self.z >= 21:
+            self.z = 2
+        elif self.z <= 1:
+            self.z = 20
 
-        map_request = f"{server_address}{ll_spn}&apikey={api_key}"
+        map_request = f"{server_address}{ll_spn}&apikey={api_key}&z={self.z}"
         response = requests.get(map_request)
 
         if not response:
@@ -43,6 +49,16 @@ class Example(QWidget):
         self.image = QLabel(self)
         self.image.move(0, 0)
         self.image.resize(600, 450)
+        self.image.setPixmap(self.pixmap)
+
+    def keyPressEvent(self, event):
+        os.remove(self.map_file)
+        if event.key() == Qt.Key.Key_PageUp:
+            self.z += 1
+        elif event.key() == Qt.Key.Key_PageDown:
+            self.z -= 1
+        self.getImage()
+        self.pixmap = QPixmap(self.map_file)
         self.image.setPixmap(self.pixmap)
 
     def closeEvent(self, event):
