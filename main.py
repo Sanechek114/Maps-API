@@ -2,26 +2,29 @@ import os
 import sys
 
 import requests
+from PyQt6 import uic
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel
+from PyQt6.QtWidgets import QApplication, QMainWindow
 from PyQt6.QtCore import Qt
 
-SCREEN_SIZE = [600, 450]
 
-
-class Example(QWidget):
+class Example(QMainWindow):
     def __init__(self):
         super().__init__()
         self.z = 5
         self.x = 0
         self.y = 0
+        uic.loadUi('dizine.ui', self)
         self.getImage()
-        self.initUI()
+        self.run()
 
     def getImage(self):
         server_address = 'https://static-maps.yandex.ru/v1?'
-        api_key = 'f3a0fe3a-b07e-4840-a1da-06f18b2ddf13'
+        api_key = "f3a0fe3a-b07e-4840-a1da-06f18b2ddf13"
         # Готовим запрос.
+        self.text = self.lineEdit.text()
+        if not self.text:
+            self.text = "Берлин"
         if self.z >= 21:
             self.z = 2
         if self.z <= 1:
@@ -34,8 +37,12 @@ class Example(QWidget):
             self.x = 180
         if self.x >= 180:
             self.x = -180
-
-        map_request = f"{server_address}ll={self.x},{self.y}&apikey={api_key}&z={self.z}"
+        map_response = requests.get(
+            f'http://geocode-maps.yandex.ru/1.x/?apikey=8013b162-6b42-4997-9691-77b7074026e0&geocode={self.text}&format=json')
+        json_response = map_response.json()
+        toponym = json_response["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]
+        toponym_coodrinates = toponym["Point"]["pos"]
+        map_request = f"{server_address}ll={toponym_coodrinates.split()[0]},{toponym_coodrinates.split()[1]}&apikey={api_key}&z={10}"
         response = requests.get(map_request)
 
         if not response:
@@ -49,16 +56,11 @@ class Example(QWidget):
         with open(self.map_file, "wb") as file:
             file.write(response.content)
 
-    def initUI(self):
-        self.setGeometry(100, 100, *SCREEN_SIZE)
+    def run(self):
         self.setWindowTitle('Отображение карты')
-
         ## Изображение
         self.pixmap = QPixmap(self.map_file)
-        self.image = QLabel(self)
-        self.image.move(0, 0)
-        self.image.resize(600, 450)
-        self.image.setPixmap(self.pixmap)
+        self.map.setPixmap(self.pixmap)
 
     def keyPressEvent(self, event):
         os.remove(self.map_file)
@@ -76,7 +78,7 @@ class Example(QWidget):
             self.y -= 10
         self.getImage()
         self.pixmap = QPixmap(self.map_file)
-        self.image.setPixmap(self.pixmap)
+        self.map.setPixmap(self.pixmap)
 
     def closeEvent(self, event):
         """При закрытии формы подчищаем за собой"""
