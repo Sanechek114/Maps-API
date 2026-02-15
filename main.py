@@ -2,22 +2,24 @@ import os
 import sys
 
 import requests
+
+from PyQt6 import uic  # Импортируем uic
 from PyQt6.QtGui import QPixmap
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel
+from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel
 
-SCREEN_SIZE = [600, 450]
+SCREEN_SIZE = [620, 600]
 
 
-class Example(QWidget):
+class Example(QMainWindow):
     def __init__(self):
         super().__init__()
         self.z = 5
         self.x = 0
         self.y = 0
         self.themes = ["light", "dark"]
-        self.theme = self.themes[1]
+        self.theme = self.themes[0]
         self.getImage()
         self.initUI()
 
@@ -58,15 +60,28 @@ class Example(QWidget):
             file.write(response.content)
 
     def initUI(self):
-        self.setGeometry(100, 100, *SCREEN_SIZE)
+        self.setFixedSize(*SCREEN_SIZE)
         self.setWindowTitle('Отображение карты')
 
-        ## Изображение
+        # Изображение
+        uic.loadUi('dizine.ui', self)
         self.pixmap = QPixmap(self.map_file)
-        self.image = QLabel(self)
-        self.image.move(0, 0)
-        self.image.resize(600, 450)
-        self.image.setPixmap(self.pixmap)
+        self.map.setPixmap(self.pixmap)
+
+        self.light.clicked.connect(self.light_theme)
+        self.dark.clicked.connect(self.dark_theme)
+
+    def light_theme(self):
+        self.theme = self.themes[0]
+        self.getImage()
+        self.pixmap = QPixmap(self.map_file)
+        self.map.setPixmap(self.pixmap)
+
+    def dark_theme(self):
+        self.theme = self.themes[1]
+        self.getImage()
+        self.pixmap = QPixmap(self.map_file)
+        self.map.setPixmap(self.pixmap)
 
     def keyPressEvent(self, event):
         os.remove(self.map_file)
@@ -84,7 +99,7 @@ class Example(QWidget):
             self.y -= 10
         self.getImage()
         self.pixmap = QPixmap(self.map_file)
-        self.image.setPixmap(self.pixmap)
+        self.map.setPixmap(self.pixmap)
 
     def closeEvent(self, event):
         """При закрытии формы подчищаем за собой"""
